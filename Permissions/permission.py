@@ -5,6 +5,7 @@ import xlsxwriter
 
 COMMANDS = {
     'list_permissions': 'adb shell pm list permissions {package_name}',
+    'dumps_state': 'adb shell dumpstate > state.logs',
     'kill_app': 'adb -d shell am force-stop {package_name}',
 }
 OMIT_DURING_REGULAR_FLOW = ['kill_app', ]
