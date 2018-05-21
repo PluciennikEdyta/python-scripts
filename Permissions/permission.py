@@ -7,10 +7,13 @@ COMMANDS = {
     'list_permissions': 'adb shell pm list permissions {package_name}',
     'dumps_state': 'adb shell dumpstate > state.logs',
     'kill_app': 'adb -d shell am force-stop {package_name}',
-	'take_screenshot': 'adb shell screencap /sdcard/screen.png',
-	'save_on_computer': 'adb pull /sdcard/screen.png',
+    'take_screenshot': 'adb shell screencap /sdcard/screen.png',
+    'save_on_computer': 'adb pull /sdcard/screen.png',
+    'install_app': 'adb install {package_name}',
+    'uninstall_app': 'adb unistall {package_name}',
+    'upgrade_app': 'adb install -r {package_name}',
 }
-OMIT_DURING_REGULAR_FLOW = ['kill_app', ]
+OMIT_DURING_REGULAR_FLOW = ['dumps_state', ]
 
 
 def _prepare_commands(**kwargs):
