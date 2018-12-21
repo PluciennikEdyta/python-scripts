@@ -12,11 +12,12 @@ logger = logging.getLogger(__name__)
 
 
 class BaseCommand(object):
-    should_gather_artifacts = False
-    should_return_value = False
-    artifacts_path = ''
     command = ''
     command_params = []
+    artifacts_path = ''
+    should_gather_artifacts = False
+    should_return_value = False
+    should_stream_output = False
 
     @log_debug(logger)
     def prepare(self, *args, **kwargs):
@@ -27,10 +28,20 @@ class BaseCommand(object):
 
     @log_debug(logger)
     def execute(self, *args, **kwargs):
-        # TODO: introduce live streaming output
-        output = subprocess.check_output(self.command.split())
+        output = []
+
+        proc = subprocess.Popen(self.command.split(), stdout=subprocess.PIPE, bufsize=1)
+        with proc.stdout:
+            for line in iter(proc.stdout.readline, b''):
+                output.append(line)
+
+                if self.should_stream_output:
+                    print line,
+
+        proc.wait()
+
         if self.should_return_value:
-            return output
+            return ''.join(output)
 
     @log_debug(logger)
     def collect_artifacts(self, *args, **kwargs):
@@ -43,11 +54,11 @@ class BaseCommand(object):
 
 
 class ListPermissionsCommand(BaseCommand):
-    should_gather_artifacts = True
-    should_return_value = True
-    artifacts_path = os.getcwd()
     command = 'adb shell pm list permissions {package_name}'
     command_params = ['package_name', ]
+    artifacts_path = os.getcwd()
+    should_gather_artifacts = True
+    should_return_value = True
 
 
 class DumpsStateCommand(BaseCommand):
@@ -93,7 +104,7 @@ class CountedPingCommand(BaseCommand):
 
     command = 'ping {host} -c {count}'
     command_params = ['host', 'count', ]
-    should_return_value = True
+    should_stream_output = True
 
 
 class DummyCommand(BaseCommand):
