@@ -5,7 +5,7 @@ import logging
 import os
 import subprocess
 
-from permissions.exceptions import NotEnoughCommandParams, CommandNotArtifactableException
+from permissions import exceptions
 from permissions.utils import log_debug
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,9 @@ class BaseCommand(object):
     def prepare(self, *args, **kwargs):
         for param in self.command_params:
             if param not in kwargs:
-                raise NotEnoughCommandParams("Parameter {} should be passed.".format(param))
+                raise exceptions.NotEnoughCommandParams(
+                    "Parameter `{}` should be passed.".format(param)
+                )
         self.command = self.command.format(**kwargs)
 
     @log_debug(logger)
@@ -46,7 +48,9 @@ class BaseCommand(object):
     @log_debug(logger)
     def collect_artifacts(self, *args, **kwargs):
         if not self.should_gather_artifacts:
-            raise CommandNotArtifactableException("Command is not set to be artifactable.")
+            raise exceptions.CommandNotArtifactableException(
+                "Command is not set to be artifactable."
+            )
 
     @log_debug(logger)
     def clean(self, *args, **kwargs):
@@ -112,5 +116,38 @@ class DummyCommand(BaseCommand):
 
 
 class CommandManager(object):
-    # TODO
-    pass
+    """
+    A simple command manager that makes it easy to execute command
+    without getting into its definition, just based on a knowledge
+    that each command needs parameters. So basically, you need to
+    know what parameters the command is expecting and pass it into
+    `set_parameters` method. But even if you don't, meaningful
+    exceptions will be raised.
+
+    Example of usage:
+
+    cm = CommandManager()
+    cm.set_command(CountedPingCommand())
+    cm.set_parameters(host='www.google.com', count=3)
+    cm.run()
+    """
+
+    def __init__(self):
+        self._command = None
+        self._parameters = dict()
+
+    def set_command(self, command):
+        if not isinstance(command, BaseCommand):
+            raise exceptions.NotACommandException("Command should be an instance of BaseCommand.")
+
+        self._command = command
+
+    def set_parameters(self, **params):
+        self._parameters = params
+
+    def run(self):
+        if not self._command:
+            raise exceptions.NoCommandSetException("You should set_command first.")
+
+        self._command.prepare(**self._parameters)
+        self._command.execute()
