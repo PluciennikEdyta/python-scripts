@@ -15,10 +15,11 @@ def setup_logging(path='logging.json', default_level=logging.INFO):
         logging.basicConfig(level=default_level)
 
 
-def log_debug(logger):
+def log(logger, level=logging.DEBUG):
     def decorator(func):
         def wrapper(self, *args, **kwargs):
-            logger.debug(
+            logger.log(
+                level,
                 "[{}][{}][START]".format(
                     type(self).__name__,
                     func.__name__,
@@ -27,19 +28,21 @@ def log_debug(logger):
 
             result = func(self, *args, **kwargs)
 
-            logger.debug(
+            logger.log(
+                level,
                 "[{}][{}][STOP]".format(
                     type(self).__name__,
                     func.__name__,
                 )
             )
-            logger.debug(
+            logger.log(
+                level,
                 "[{}][{}][RESULT]".format(
                     type(self).__name__,
                     func.__name__,
                 )
             )
-            logger.debug(result)
+            logger.log(level, result)
             return result
         return wrapper
     return decorator
