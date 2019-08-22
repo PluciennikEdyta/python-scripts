@@ -78,11 +78,23 @@ class KillAppCommand(BaseCommand):
 
 
 class TakeScreenshotCommand(BaseCommand):
-    command = 'adb shell screencap /sdcard/screen.png'
+    command = 'adb shell screencap {path}'
+    command_params = ['path', ]
+
+
+class RecordScreenCommand(BaseCommand):
+    command = 'adb shell screenrecord {path}'
+    command_params = ['path', ]
+
+
+class KillallCommand(BaseCommand):
+    command = 'killall {process_name}'
+    command_params = ['process_name', ]
 
 
 class SaveOnComputerCommand(BaseCommand):
-    command = 'adb pull /sdcard/screen.png'
+    command = 'adb pull {path}'
+    command_params = ['path', ]
 
 
 class InstallAppCommand(BaseCommand):
